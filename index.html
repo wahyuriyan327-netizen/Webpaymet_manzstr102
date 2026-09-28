@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Payment - Elektrik Blue</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a1a3a 0%, #0d2b6b 50%, #051024 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    position: relative;
+    padding: 20px;
+  }
+
+  /* Efek Bintang */
+  .stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 2s infinite ease-in-out;
+    box-shadow: 0 0 10px #fff, 0 0 20px #4da6ff;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* Efek Petir */
+  .lightning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .bolt {
+    position: absolute;
+    width: 3px;
+    height: 0;
+    background: linear-gradient(to bottom, transparent, #4da6ff, #fff, #4da6ff, transparent);
+    filter: blur(1px);
+    opacity: 0;
+    animation: flash 6s infinite;
+    box-shadow: 0 0 20px #4da6ff, 0 0 40px #4da6ff;
+  }
+
+  .bolt::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -15px;
+    width: 30px;
+    height: 60%;
+    background: radial-gradient(ellipse at center, rgba(77, 166, 255, 0.4), transparent 70%);
+    filter: blur(15px);
+  }
+
+  @keyframes flash {
+    0%, 92%, 100% { opacity: 0; height: 0; }
+    93% { opacity: 1; height: 100vh; }
+    94% { opacity: 0; }
+    95% { opacity: 1; height: 100vh; }
+    96% { opacity: 0.3; }
+    97% { opacity: 0; height: 0; }
+  }
+
+  .bolt:nth-child(1) { left: 15%; animation-delay: 0s; }
+  .bolt:nth-child(2) { left: 45%; animation-delay: 2s; }
+  .bolt:nth-child(3) { left: 78%; animation-delay: 4s; }
+
+  /* Container Utama */
+  .payment-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 2px solid rgba(77, 166, 255, 0.5);
+    border-radius: 24px;
+    padding: 35px 30px;
+    box-shadow: 
+      0 0 40px rgba(77, 166, 255, 0.4),
+      0 0 80px rgba(77, 166, 255, 0.2),
+      inset 0 0 30px rgba(77, 166, 255, 0.1);
+    animation: glow 3s infinite ease-in-out;
+  }
+
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 40px rgba(77, 166, 255, 0.4), 0 0 80px rgba(77, 166, 255, 0.2), inset 0 0 30px rgba(77, 166, 255, 0.1); }
+    50% { box-shadow: 0 0 60px rgba(77, 166, 255, 0.6), 0 0 120px rgba(77, 166, 255, 0.3), inset 0 0 40px rgba(77, 166, 255, 0.2); }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .header .icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    background: linear-gradient(135deg, #4da6ff, #0066ff);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 35px;
+    box-shadow: 0 0 30px rgba(77, 166, 255, 0.8);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .header h1 {
+    color: #fff;
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 15px rgba(77, 166, 255, 0.8);
+  }
+
+  .header p {
+    color: #a8d0ff;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Kartu Metode Pembayaran */
+  .method-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid rgba(77, 166, 255, 0.3);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .method-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(77, 166, 255, 0.2), transparent);
+    transition: left 0.6s ease;
+  }
+
+  .method-card:hover::before {
+    left: 100%;
+  }
+
+  .method-card:hover {
+    border-color: #4da6ff;
+    background: rgba(77, 166, 255, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(77, 166, 255, 0.4);
+  }
+
+  .method-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .method-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 13px;
+    color: #fff;
+    flex-shrink: 0;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  .logo-dana {
+    background: linear-gradient(135deg, #118EEA, #0a5fb8);
+    box-shadow: 0 0 15px rgba(17, 142, 234, 0.7);
+  }
+
+  .logo-gopay {
+    background: linear-gradient(135deg, #00AED6, #0088a8);
+    box-shadow: 0 0 15px rgba(0, 174, 214, 0.7);
+  }
+
+  .method-name {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .method-detail {
+    padding-left: 54px;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(77, 166, 255, 0.2);
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    color: #7db8ff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .detail-value {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 8px rgba(77, 166, 255, 0.5);
+  }
+
+  .highlight {
+    color: #4da6ff;
+    text-shadow: 0 0 12px rgba(77, 166, 255, 0.8);
+  }
+
+  /* Tombol Salin */
+  .copy-btn {
+    background: rgba(77, 166, 255, 0.2);
+    border: 1px solid rgba(77, 166, 255, 0.5);
+    color: #4da6ff;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+  }
+
+  .copy-btn:hover {
+    background: #4da6ff;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(77, 166, 255, 0.8);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(77, 166, 255, 0.2);
+  }
+
+  .footer p {
+    color: #7db8ff;
+    font-size: 11px;
+    letter-spacing: 1px;
+    line-height: 1.8;
+  }
+
+  .shield {
+    display: inline-block;
+    color: #4da6ff;
+    margin-right: 5px;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Notifikasi Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: linear-gradient(135deg, #4da6ff, #0066ff);
+    color: #fff;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 14px;
+    box-shadow: 0 0 25px rgba(77, 166, 255, 0.8);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  @media (max-width: 480px) {
+    .payment-container {
+      padding: 25px 18px;
+    }
+    .header h1 { font-size: 20px; }
+    .method-card { padding: 15px; }
+    .detail-value { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Efek Bintang -->
+  <div class="stars" id="stars"></div>
+
+  <!-- Efek Petir -->
+  <div class="lightning">
+    <div class="bolt"></div>
+    <div class="bolt"></div>
+    <div class="bolt"></div>
+  </div>
+
+  <!-- Container Pembayaran -->
+  <div class="payment-container">
+    <div class="header">
+      <div class="icon">⚡</div>
+      <h1>METODE PEMBAYARAN</h1>
+      <p>Pilih &amp; Transfer</p>
+    </div>
+
+    <!-- DANA -->
+    <div class="method-card" onclick="copyText('087745460192')">
+      <div class="method-header">
+        <div class="method-logo logo-dana">DANA</div>
+        <div class="method-name">DANA</div>
+      </div>
+      <div class="method-detail">
+        <div class="detail-row">
+          <span class="detail-label">Nomor</span>
+          <span class="detail-value highlight">087745460192</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Atas Nama</span>
+          <span class="detail-value">A/N SUBARIYATI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOPAY -->
+    <div class="method-card" onclick="copyText('087745460192')">
+      <div class="method-header">
+        <div class="method-logo logo-gopay">GO</div>
+        <div class="method-name">GOPAY</div>
+      </div>
+      <div class="method-detail">
+        <div class="detail-row">
+          <span class="detail-label">Nomor</span>
+          <span class="detail-value highlight">087745460192</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Atas Nama</span>
+          <span class="detail-value">A/N MANZJB2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p><span class="shield">🛡️</span> Transaksi Aman &amp; Terpercaya</p>
+      <p>Klik nomor untuk menyalin otomatis</p>
+    </div>
+  </div>
+
+  <!-- Toast Notifikasi -->
+  <div class="toast" id="toast">✓ Nomor berhasil disalin!</div>
+
+  <script>
+    // Generate Bintang
+    const starsContainer = document.getElementById('stars');
+    const starCount = 120;
+
+    for (let i = 0; i < starCount; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      const size = Math.random() * 3 + 1;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+      starsContainer.appendChild(star);
+    }
+
+    // Fungsi Copy
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('✓ Nomor ' + text + ' berhasil disalin!');
+      }).catch(() => {
+        // Fallback
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast('✓ Nomor ' + text + ' berhasil disalin!');
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+  </script>
+
+</body>
+</html>
